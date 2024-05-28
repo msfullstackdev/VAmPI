@@ -1,19 +1,147 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- master
+  - master
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+  API_URL: 'http://localhost:5000'
+  AUTH_ENDPOINT: '/api/auth'  # Adjust based on your API's authentication endpoint
+  AKTO_API_KEY: 'your_akto_api_key'  # Replace with your Akto API key
+  AUTH_TOKEN: 'your_auth_token_here'  # Replace with your actual auth token if required
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+stages:
+  - stage: Security_Scanning
+    jobs:
+      - job: Run_API_Application
+        displayName: 'Run API Application'
+        steps:
+          - script: |
+              docker run -d -e vulnerable=1 -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
+            displayName: 'Run API Application in Docker'
+
+          - script: |
+              echo "Waiting for API to be ready..."
+              for i in {1..30}; do
+                if curl -s -o /dev/null -w "%{http_code}" $(API_URL)/ | grep -q "200"; then
+                  echo "API is up and running."
+                  exit 0
+                else
+                  echo "Waiting for API... ($i/30)"
+                  sleep 10
+                fi
+              done
+            displayName: 'Wait for API to be ready'
+
+      # - job: Run_Akto_Scan
+      #   displayName: 'Run Akto Scan'
+      #   dependsOn: Run_API_Application
+      #   condition: succeeded()
+      #   steps:
+      #     - checkout: self
+
+      #     - script: |
+      #         AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$(AUTH_ENDPOINT)" -H "Content-Type: application/json" -d '{"username":"admin", "password":"password"}')
+      #         AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
+      #         echo "Retrieved Auth Token: $AUTH_TOKEN"
+      #         echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
+      #       displayName: 'Retrieve Auth Token from OpenAPI'
+
+      #     - task: UsePythonVersion@0
+      #       inputs:
+      #         versionSpec: '3.x'
+      #         addToPath: true
+
+      #     - script: |
+      #         pip install akto-cli
+      #         echo "Akto CLI installed"
+      #       displayName: 'Install Akto CLI'
+
+      #     - script: |
+      #         akto scan --api-key $(AKTO_API_KEY) --target $(API_URL) --openapi-file openapi_specs/openapi3.yml --auth-header "Authorization: Bearer $(AUTH_TOKEN)" --output akto_results.json
+      #       displayName: 'Run Akto Scan with Auth'
+
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         pathtoPublish: '$(System.DefaultWorkingDirectory)/akto_results.json'
+      #         artifactName: 'AktoResults'
+
+      # - job: Run_Wallarm_Scan
+      #   displayName: 'Run Wallarm Scan'
+      #   dependsOn: Run_API_Application
+      #   condition: succeeded()
+      #   steps:
+      #     - checkout: self
+
+      #     - script: |
+      #         docker pull wallarm/gotestwaf
+      #         echo "Wallarm Docker Image pulled"
+      #       displayName: 'Pull Wallarm Docker Image'
+
+      #     - script: |
+      #         docker run --rm -v $(System.DefaultWorkingDirectory):/data wallarm/gotestwaf:latest \
+      #           --url $(API_URL) \
+      #           --openapiFile /data/openapi_specs/openapi3.yml \
+      #           --reportFormat json \
+      #           --reportPath /data \
+      #           --reportName wallarm_scan.json \
+      #           --passStatusCodes 200,404 \
+      #           --noEmailReport \
+      #           --includePayloads true \
+      #           --headers "Authorization: Bearer $(AUTH_TOKEN)"
+      #       displayName: 'Run Wallarm Scan with OpenAPI and Auth'
+
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         pathtoPublish: '$(System.DefaultWorkingDirectory)/wallarm_scan.json'
+      #         artifactName: 'WallarmResults'
+
+      # - job: Run_ZAP_Scan
+      #   displayName: 'Run ZAP Scan'
+      #   dependsOn: Run_API_Application
+      #   condition: succeeded()
+      #   steps:
+      #     - checkout: self
+
+      #     - script: |
+      #         docker pull owasp/zap2docker-weekly
+      #         echo "ZAP Docker Image pulled"
+      #       displayName: 'Pull ZAP Docker Image'
+
+      #     - script: |
+      #         docker run --rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t owasp/zap2docker-weekly zap-api-scan.py -t $(API_URL) -f openapi -O /zap/wrk/openapi_specs/openapi3.yml -r zap_report.html -J zap_results.json -z \"-config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Authorization -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=Bearer $(AUTH_TOKEN)\" --timeout 1200
+      #       displayName: 'Run ZAP API Scan with OpenAPI and Auth'
+
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_results.json'
+      #         artifactName: 'ZapResults'
+
+      # - job: Consolidate_Results
+      #   displayName: 'Consolidate Scan Results'
+      #   dependsOn:
+      #     - Run_Akto_Scan
+      #     - Run_Wallarm_Scan
+      #     - Run_ZAP_Scan
+      #   condition: succeeded()
+      #   steps:
+      #     - checkout: self
+
+      #     - task: UsePythonVersion@0
+      #       inputs:
+      #         versionSpec: '3.x'
+      #         addToPath: true
+
+      #     - script: |
+      #         pip install pandas
+      #         pip install jq
+      #       displayName: 'Install Python Libraries'
+
+      #     - script: |
+      #         python3 consolidate_results.py
+      #       displayName: 'Consolidate Scan Results'
+
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         pathtoPublish: '$(System.DefaultWorkingDirectory)/aggregated_results.json'
+      #         artifactName: 'AggregatedResults'
