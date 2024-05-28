@@ -42,7 +42,8 @@ stages:
           
           - script: |
               docker run --rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
-                -t $(API_URL) \
+                -t /zap/wrk/openapi_specs/openapi3.yml \
+                -f openapi \
                 -r zap_report.html \
                 -J zap_results.json
             displayName: 'Run ZAP API Scan with OpenAPI and Auth'
