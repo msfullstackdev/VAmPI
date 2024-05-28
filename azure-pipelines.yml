@@ -41,7 +41,7 @@ stages:
             displayName: 'Retrieve Auth Token from OpenAPI'
           
           - script: |
-              docker run --rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stableap-api-scan.py \
+              docker run --rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
                 -t $(API_URL) \
                 -f openapi \
                 -O /zap/wrk/openapi_specs/openapi3.yml \
