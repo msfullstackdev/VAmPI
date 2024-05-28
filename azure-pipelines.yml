@@ -55,7 +55,7 @@ stages:
                 -addonupdate \
                 -addoninstall ascanrulesBeta \
                 -cmd \
-                -quickurl $(API_URL)
+                -quickurl http://localhost:5000
           
           # - script: |
           #     docker run --rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
