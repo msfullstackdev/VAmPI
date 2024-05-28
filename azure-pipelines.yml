@@ -6,7 +6,7 @@ pool:
 
 variables:
   API_URL: 'http://localhost:5000'
-  AUTH_ENDPOINT: '/api/auth'  # Adjust based on your API's authentication endpoint
+  AUTH_ENDPOINT: '/users/v1/login'  # Adjust based on your API's authentication endpoint
   AKTO_API_KEY: 'your_akto_api_key'  # Replace with your Akto API key
   AUTH_TOKEN: 'your_auth_token_here'  # Replace with your actual auth token if required
 
@@ -32,6 +32,13 @@ stages:
                 fi
               done
             displayName: 'Wait for API to be ready'
+          
+          - script: |
+              AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)/$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
+              AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
+              echo "Retrieved Auth Token: $AUTH_TOKEN"
+              echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
+            displayName: 'Retrieve Auth Token from OpenAPI'
 
       # - job: Run_Akto_Scan
       #   displayName: 'Run Akto Scan'
