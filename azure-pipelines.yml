@@ -11,10 +11,10 @@ variables:
   AUTH_TOKEN: 'your_auth_token_here'  # Replace with your actual auth token if required
 
 stages:
-  - stage: Security_Scanning
+  - stage: API_Security_Scanning
     jobs:
-      - job: Run_API_Application
-        displayName: 'Run API Application'
+      - job: OWASP_ZAP
+        displayName: 'Run API Application and Perform API Security Testing using OWASP Zap'
         steps:
           - script: |
               docker run -d -e vulnerable=1 -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
@@ -39,6 +39,27 @@ stages:
               echo "Retrieved Auth Token: $AUTH_TOKEN"
               echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
             displayName: 'Retrieve Auth Token from OpenAPI'
+          
+          - script: |
+              docker run --rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -u zap ghcr.io/zaproxy/zaproxy:stable /bin/bash -c "
+                zap.sh -daemon -port 8080 -host 0.0.0.0 -config api.disablekey=true &
+                ZAP_PID=\$!
+                zap-cli --zap-url http://localhost --zap-port 8080 install-plugin openapi
+                zap-cli --zap-url http://localhost --zap-port 8080 status -t 60
+                zap-api-scan.py -t $(API_URL) -f openapi -O /zap/wrk/openapi_specs/openapi3.yml -r zap_report.html -J zap_results.json -z \"-config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Authorization -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=Bearer $(AUTH_TOKEN)\"
+                kill \$ZAP_PID
+              "
+            displayName: 'Install OpenAPI Plugin and Run ZAP API Scan with Auth'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_results.json'
+              artifactName: 'ZapResults'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_report.html'
+              artifactName: 'ZapHtmlReport'
 
       # - job: Run_Akto_Scan
       #   displayName: 'Run Akto Scan'
