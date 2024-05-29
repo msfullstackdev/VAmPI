@@ -42,11 +42,11 @@ stages:
           - script: |
               sudo chmod -R 777 $(System.DefaultWorkingDirectory)
               docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+                -O $(API_URL) \
                 -I -t /zap/wrk/openapi_specs/openapi3.yml \
                 -f openapi \
                 -r zap_report.html \
                 -J zap_results.json \
-                -O $(API_URL) \
                 -z "-config replacer.full_list(0).description=auth_header \
                 -config replacer.full_list(0).enabled=true \
                 -config replacer.full_list(0).matchtype=REQ_HEADER \
