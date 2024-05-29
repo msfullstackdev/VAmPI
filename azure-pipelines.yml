@@ -39,10 +39,11 @@ stages:
               echo "Retrieved Auth Token: $AUTH_TOKEN"
               echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
             displayName: 'Retrieve Auth Token from OpenAPI'
-
+#ghcr.io/zaproxy/zaproxy:bare
+#ghcr.io/zaproxy/zaproxy:stable
           - script: |
               sudo chmod -R 777 $(System.DefaultWorkingDirectory)
-              docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+              docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:bare zap-api-scan.py \
                 -I -t /zap/wrk/openapi_specs/openapi3.yml \
                 -f openapi \
                 -r zap_report.html \
