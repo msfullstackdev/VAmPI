@@ -56,15 +56,15 @@ stages:
                 -cmd \
                 -quickurl http://localhost:5000
           
-          # - script: |
-          #     docker run --rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
-          #       -t /zap/wrk/openapi_specs/openapi3.yml \
-          #       -f openapi \
-          #       -r zap_report.html \
-          #       -J zap_results.json \
-          #       -O $(API_URL) \
-          #       -z "-config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Authorization -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=Bearer $(AUTH_TOKEN)" 
-          #   displayName: 'Run ZAP API Scan with OpenAPI and Auth'
+          - script: |
+              docker run --network host--rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+                -t /zap/wrk/openapi_specs/openapi3.yml \
+                -f openapi \
+                -r zap_report.html \
+                -J zap_results.json \
+                -O $(API_URL) \
+                -z "-config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Authorization -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=Bearer $(AUTH_TOKEN)" 
+            displayName: 'Run ZAP API Scan with OpenAPI and Auth'
           
           - task: PublishBuildArtifacts@1
             inputs:
