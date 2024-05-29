@@ -15,7 +15,7 @@ stages:
     jobs:
       - job: OWASP_ZAP
         condition: succeeded()
-        displayName: 'Run OWASP Zap'
+        displayName: 'OWASP Zap'
         steps:
           - script: |
               AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
@@ -50,7 +50,7 @@ stages:
               artifactName: 'ZapHtmlReport'
 
       - job: Akto
-        displayName: 'Run Akto Scan'
+        displayName: 'Akto'
         condition: succeeded()
         steps:
           - script: |
