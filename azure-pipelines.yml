@@ -57,7 +57,8 @@ stages:
           #       -quickurl http://localhost:5000
           
           - script: |
-              docker run  --rm -u zap --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+              sudo chmod -R 777 $(System.DefaultWorkingDirectory)
+              docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
                 -t /zap/wrk/openapi_specs/openapi3.yml \
                 -f openapi \
                 -r zap_report.html \
