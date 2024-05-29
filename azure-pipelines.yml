@@ -14,7 +14,7 @@ stages:
   - stage: API_Security_Scanning
     jobs:
       - job: OWASP_ZAP
-        displayName: 'Run API Application and Perform API Security Testing using OWASP Zap'
+        displayName: 'OWASP Zap'
         steps:
           - script: |
               docker run -d -e vulnerable=0 -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
@@ -39,23 +39,7 @@ stages:
               echo "Retrieved Auth Token: $AUTH_TOKEN"
               echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
             displayName: 'Retrieve Auth Token from OpenAPI'
-          
-          # - script: |
-          #       docker run --rm -v $(pwd):/zap/wrk/:rw -u zap owasp/zap2docker-stable zap.sh -daemon \
-          #       -port 8090 \
-          #       -host 0.0.0.0 \
-          #       -config api.disablekey=true \
-          #       -config zap.rootcause.level=INFO \
-          #       -config replacer.full_list(0).description=auth_header \
-          #       -config replacer.full_list(0).enabled=true \
-          #       -config replacer.full_list(0).matchtype=REQ_HEADER \
-          #       -config replacer.full_list(0).matchstr=Authorization \
-          #       -config replacer.full_list(0).regex=false \
-          #       -addonupdate \
-          #       -addoninstall ascanrulesBeta \
-          #       -cmd \
-          #       -quickurl http://localhost:5000
-          
+
           - script: |
               sudo chmod -R 777 $(System.DefaultWorkingDirectory)
               docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
@@ -81,6 +65,33 @@ stages:
             inputs:
               pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_report.html'
               artifactName: 'ZapHtmlReport'
+
+      - job: Akto
+        displayName: 'Akto'
+        steps:
+          - script: |
+              docker run -d -e vulnerable=0 -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
+            displayName: 'Run API Application in Docker'
+
+          - script: |
+              echo "Waiting for API to be ready..."
+              for i in {1..30}; do
+                if curl -s -o /dev/null -w "%{http_code}" $(API_URL)/ | grep -q "200"; then
+                  echo "API is up and running."
+                  exit 0
+                else
+                  echo "Waiting for API... ($i/30)"
+                  sleep 10
+                fi
+              done
+            displayName: 'Wait for API to be ready'
+          
+          - script: |
+              AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
+              AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.auth_token')
+              echo "Retrieved Auth Token: $AUTH_TOKEN"
+              echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
+            displayName: 'Retrieve Auth Token from OpenAPI'
 
       # - job: Run_Akto_Scan
       #   displayName: 'Run Akto Scan'
