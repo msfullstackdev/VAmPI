@@ -40,21 +40,21 @@ stages:
               echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
             displayName: 'Retrieve Auth Token from OpenAPI'
           
-          - script: |
-                docker run --rm -v $(pwd):/zap/wrk/:rw -u zap owasp/zap2docker-stable zap.sh -daemon \
-                -port 8090 \
-                -host 0.0.0.0 \
-                -config api.disablekey=true \
-                -config zap.rootcause.level=INFO \
-                -config replacer.full_list(0).description=auth_header \
-                -config replacer.full_list(0).enabled=true \
-                -config replacer.full_list(0).matchtype=REQ_HEADER \
-                -config replacer.full_list(0).matchstr=Authorization \
-                -config replacer.full_list(0).regex=false \
-                -addonupdate \
-                -addoninstall ascanrulesBeta \
-                -cmd \
-                -quickurl http://localhost:5000
+          # - script: |
+          #       docker run --rm -v $(pwd):/zap/wrk/:rw -u zap owasp/zap2docker-stable zap.sh -daemon \
+          #       -port 8090 \
+          #       -host 0.0.0.0 \
+          #       -config api.disablekey=true \
+          #       -config zap.rootcause.level=INFO \
+          #       -config replacer.full_list(0).description=auth_header \
+          #       -config replacer.full_list(0).enabled=true \
+          #       -config replacer.full_list(0).matchtype=REQ_HEADER \
+          #       -config replacer.full_list(0).matchstr=Authorization \
+          #       -config replacer.full_list(0).regex=false \
+          #       -addonupdate \
+          #       -addoninstall ascanrulesBeta \
+          #       -cmd \
+          #       -quickurl http://localhost:5000
           
           - script: |
               docker run --network host--rm -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
