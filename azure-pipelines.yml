@@ -59,7 +59,7 @@ stages:
           - script: |
               sudo chmod -R 777 $(System.DefaultWorkingDirectory)
               docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
-                -I -t /zap/wrk/openapi_specs/openapi3.yml \
+                -I -a -t /zap/wrk/openapi_specs/openapi3.yml \
                 -f openapi \
                 -r zap_report.html \
                 -J zap_results.json \
