@@ -5,10 +5,10 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  API_URL: 'http://localhost:5000'
-  AUTH_ENDPOINT: '/users/v1/login'  # Adjust based on your API's authentication endpoint
-  AKTO_API_KEY: 'your_akto_api_key'  # Replace with your Akto API key
-  AUTH_TOKEN: 'your_auth_token_here'  # Replace with your actual auth token if required
+  API_URL: 'http://64.227.149.167:5000'
+  AUTH_ENDPOINT: '/users/v1/login'  
+  AKTO_API_KEY: 'your_akto_api_key' 
+  AUTH_TOKEN: 'your_auth_token_here'
 
 stages:
   - stage: API_Security_Scanning
@@ -16,22 +16,22 @@ stages:
       - job: OWASP_ZAP
         displayName: 'OWASP Zap'
         steps:
-          - script: |
-              docker run -d -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
-            displayName: 'Run API Application in Docker'
+          # - script: |
+          #     docker run -d -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
+          #   displayName: 'Run API Application in Docker'
 
-          - script: |
-              echo "Waiting for API to be ready..."
-              for i in {1..30}; do
-                if curl -s -o /dev/null -w "%{http_code}" $(API_URL)/ | grep -q "200"; then
-                  echo "API is up and running."
-                  exit 0
-                else
-                  echo "Waiting for API... ($i/30)"
-                  sleep 10
-                fi
-              done
-            displayName: 'Wait for API to be ready'
+          # - script: |
+          #     echo "Waiting for API to be ready..."
+          #     for i in {1..30}; do
+          #       if curl -s -o /dev/null -w "%{http_code}" $(API_URL)/ | grep -q "200"; then
+          #         echo "API is up and running."
+          #         exit 0
+          #       else
+          #         echo "Waiting for API... ($i/30)"
+          #         sleep 10
+          #       fi
+          #     done
+          #   displayName: 'Wait for API to be ready'
           
           - script: |
               AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
@@ -65,32 +65,32 @@ stages:
               pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_report.html'
               artifactName: 'ZapHtmlReport'
 
-      - job: Akto
-        displayName: 'Akto'
-        steps:
-          - script: |
-              docker run -d -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
-            displayName: 'Run API Application in Docker'
+      # - job: Akto
+      #   displayName: 'Akto'
+      #   steps:
+      #     - script: |
+      #         docker run -d -e tokentimetolive=300 -p 5000:5000 erev0s/vampi:latest
+      #       displayName: 'Run API Application in Docker'
 
-          - script: |
-              echo "Waiting for API to be ready..."
-              for i in {1..30}; do
-                if curl -s -o /dev/null -w "%{http_code}" $(API_URL)/ | grep -q "200"; then
-                  echo "API is up and running."
-                  exit 0
-                else
-                  echo "Waiting for API... ($i/30)"
-                  sleep 10
-                fi
-              done
-            displayName: 'Wait for API to be ready'
+      #     - script: |
+      #         echo "Waiting for API to be ready..."
+      #         for i in {1..30}; do
+      #           if curl -s -o /dev/null -w "%{http_code}" $(API_URL)/ | grep -q "200"; then
+      #             echo "API is up and running."
+      #             exit 0
+      #           else
+      #             echo "Waiting for API... ($i/30)"
+      #             sleep 10
+      #           fi
+      #         done
+      #       displayName: 'Wait for API to be ready'
           
-          - script: |
-              AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
-              AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.auth_token')
-              echo "Retrieved Auth Token: $AUTH_TOKEN"
-              echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
-            displayName: 'Retrieve Auth Token from OpenAPI'
+      #     - script: |
+      #         AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
+      #         AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.auth_token')
+      #         echo "Retrieved Auth Token: $AUTH_TOKEN"
+      #         echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
+      #       displayName: 'Retrieve Auth Token from OpenAPI'
 
       # - job: Run_Akto_Scan
       #   displayName: 'Run Akto Scan'
