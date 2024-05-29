@@ -64,7 +64,6 @@ stages:
               docker run --rm  --network host -v $(System.DefaultWorkingDirectory):/out  \
               -e TEST_IDS='JWT_NONE_ALGO REMOVE_TOKENS' \
               -e AKTO_DASHBOARD_URL='http://64.227.149.167:9090' \ 
-              --dashboard-url "http://64.227.149.167:9090" \
               -e AKTO_API_KEY='IvZKIN7aTpg8TR7T7ULFL9C5KTgoeK0JPpXKMazs' \ 
               -e OVERRIDE_APP_URL='http://64.227.149.167:5000/' \
               aktosecurity/akto-api-testing-cli
