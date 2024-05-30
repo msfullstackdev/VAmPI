@@ -27,6 +27,7 @@ stages:
               echo "Retrieved Auth Token: $AUTH_TOKEN"
               echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
             displayName: 'Retrieve Auth Token from OpenAPI'
+          
           - script: |
               sudo chmod -R 777 $(System.DefaultWorkingDirectory)
               docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
@@ -42,7 +43,7 @@ stages:
                 -config replacer.full_list(0).regex=false \
                 -config replacer.full_list(0).replacement=Bearer $(AUTH_TOKEN)" 
             displayName: 'Run ZAP API Scan with OpenAPI and Auth'
-          
+
           - task: PublishBuildArtifacts@1
             inputs:
               pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_results.json'
@@ -58,11 +59,12 @@ stages:
         condition: succeeded()
         steps:
           - script: |
-              curl http://139.59.40.74:9090/api/startTest -H 'X-API-KEY: QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d' -H 'content-type: application/json' -d '{"testingRunHexId": "66580ac8d32ba320db8d82bd", "startTimestamp" : 0, "metadata": {"platform": "Azure DevOps"}}'
+              curl $(AKTO_DASHBOARD_URL)/api/startTest -H 'X-API-KEY: $(AKTO_API_KEY)' -H 'content-type: application/json' -d '{"testingRunHexId": "$(AKTO_TESTING_RUNHEXA_ID)", "startTimestamp" : 0, "metadata": {"platform": "Azure DevOps"}}'
             displayName: 'Trigger the Akto API Scan'
-          - script: |
-              curl "http://139.59.40.74:9090/api/fetchTestRunResultDetails" -H 'X-API-KEY: QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d' -H 'content-type: application/json' -d '{"testingRunResultHexId": 66581096d32ba320db8d82de}' --compressed
-            displayName: 'Trigger the Akto API Scan'
+
+          # - script: |
+          #     curl "http://139.59.40.74:9090/api/fetchTestRunResultDetails" -H 'X-API-KEY: QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d' -H 'content-type: application/json' -d '{"testingRunResultHexId": 66581096d32ba320db8d82de}' --compressed
+          #   displayName: 'Download the reports'
           
 
       #     - script: |
