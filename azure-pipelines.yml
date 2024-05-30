@@ -36,7 +36,7 @@ variables:
 ## 8. Python script is created for finding the duplicates between the scanner results. The results are staged in ADO Build artifacts and 
 ##    and the same is checked-in with the repository
 ##       https://github.com/msfullstackdev/VAmPI/blob/master/vuln_aggregation_and_deduplication.py 
-## 9. We need to understand the scanner results schema and required script updation to get the optimal results.
+## 9. This is skeleton workflow and We need to understand the scanner results schema, model selection and required script updation to get the optimal results.
 
 stages:
   - stage: API_Security_Scanning
