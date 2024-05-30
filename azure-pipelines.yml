@@ -6,9 +6,13 @@ pool:
 
 variables:
   API_URL: 'http://139.59.40.74:5000'
-  AUTH_ENDPOINT: '/users/v1/login'  
-  AKTO_API_KEY: 'your_akto_api_key' 
-  AUTH_TOKEN: 'your_auth_token_here'
+  API_AUTH_ENDPOINT: '/users/v1/login' 
+  API_AUTH_USERNAME: 'admin'
+  API_AUTH_PASSWORD: 'pass1' 
+  AKTO_DASHBOARD_URL: 'http://139.59.40.74:9090'
+  AKTO_API_KEY: 'QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d'
+  AKTO_TESTING_RUNHEXA_ID: '66580ac8d32ba320db8d82bd'
+  AUTH_TOKEN: ' '
 
 stages:
   - stage: API_Security_Scanning
@@ -18,7 +22,7 @@ stages:
         displayName: 'OWASP Zap'
         steps:
           - script: |
-              AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
+              AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$API_AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
               AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.auth_token')
               echo "Retrieved Auth Token: $AUTH_TOKEN"
               echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
