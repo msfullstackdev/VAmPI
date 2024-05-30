@@ -131,4 +131,17 @@ stages:
         steps:
           - script: |
              echo 'hello'
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'aktoResults'
+              downloadPath: '$(System.ArtifactsDirectory)'
+          
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'ZapResults'
+              downloadPath: '$(System.ArtifactsDirectory)'
         
