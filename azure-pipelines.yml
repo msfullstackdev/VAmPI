@@ -49,16 +49,13 @@ stages:
               pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_report.html'
               artifactName: 'ZapHtmlReport'
 
-      # - job: Akto
-      #   displayName: 'Akto'
-      #   condition: succeeded()
-      #   steps:
-      #     - script: |
-      #         AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$(AUTH_ENDPOINT)" -H "Content-Type: application/json" -d '{"username":"admin", "password":"password"}')
-      #         AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
-      #         echo "Retrieved Auth Token: $AUTH_TOKEN"
-      #         echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
-      #       displayName: 'Retrieve Auth Token from OpenAPI'
+      - job: Akto
+        displayName: 'Akto'
+        condition: succeeded()
+        steps:
+          - script: |
+              curl http://139.59.40.74:9090/api/startTest -H 'X-API-KEY: QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d' -H 'content-type: application/json' -d '{"testingRunHexId": "66580ac8d32ba320db8d82bd", "startTimestamp" : 0, "metadata": {"platform": "Azure DevOps"}}'
+            displayName: 'Retrieve Auth Token from OpenAPI'
 
       #     - script: |
       #         docker run --rm --network host -v $(System.DefaultWorkingDirectory):/out \
