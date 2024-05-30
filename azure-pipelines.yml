@@ -61,6 +61,14 @@ stages:
           - script: |
               curl $(AKTO_DASHBOARD_URL)/api/startTest -H 'X-API-KEY: $(AKTO_API_KEY)' -H 'content-type: application/json' -d '{"testingRunHexId": "$(AKTO_TESTING_RUNHEXA_ID)", "startTimestamp" : 0, "metadata": {"platform": "Azure DevOps"}}'
             displayName: 'Trigger the Akto API Scan'
+      
+      - job: 'wallarm'
+        displayName: 'wallarm'
+        condition: succeeded()
+        steps:
+          - script: |
+              docker run --rm --network="host" -v %cd%/reports:/app/reports -v $(System.DefaultWorkingDirectory)/openapi3.yml:/app/openapi3.yml wallarm/gotestwaf -e url=$(API_URL) -e openapiFile=openapi3.yml --noEmailReport 
+            displayName: 'Trigger the wallarm API Scan'
 
           # - script: |
           #     curl "http://139.59.40.74:9090/api/fetchTestRunResultDetails" -H 'X-API-KEY: QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d' -H 'content-type: application/json' -d '{"testingRunResultHexId": 66581096d32ba320db8d82de}' --compressed
