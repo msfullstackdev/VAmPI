@@ -33,6 +33,10 @@ variables:
 ##          Path: https://github.com/msfullstackdev/VAmPI/blob/master/akto-manual-api-security-report.csv
 ## 7. Wallarm API Security Testing - Not able to perform the scan either manual or automated with free tier account
 ##      a. Open API security testing feature is not enabled and it requires nodes to configured
+## 8. Python script is created for finding the duplicates between the scanner results. The results are staged in ADO Build artifacts and 
+##    and the same is checked-in with the repository
+##       https://github.com/msfullstackdev/VAmPI/blob/master/vuln_aggregation_and_deduplication.py 
+## 9. We need to understand the scanner results schema and required script updation to get the optimal results.
 
 stages:
   - stage: API_Security_Scanning
@@ -129,9 +133,8 @@ stages:
           - akto
           - owasp_zap
         steps:
-          - script: |
-             echo 'hello'
           - task: DownloadBuildArtifacts@1
+            displayName: 'Download the akto results'
             inputs:
               buildType: 'current'
               downloadType: 'single'
@@ -139,9 +142,23 @@ stages:
               downloadPath: '$(System.ArtifactsDirectory)'
           
           - task: DownloadBuildArtifacts@1
+            displayName: 'Download the Zap results'
             inputs:
               buildType: 'current'
               downloadType: 'single'
               artifactName: 'ZapResults'
               downloadPath: '$(System.ArtifactsDirectory)'
+          
+          - task: CmdLine@2
+            displayName: 'Deduplicate the Api Security Issues'
+            inputs:
+              script: 'python https://github.com/msfullstackdev/VAmPI/blob/master/vuln_aggregation_and_deduplication.py $(System.ArtifactsDirectory)/ZapResults/zap_results.json $(System.ArtifactsDirectory)/aktoResults/akto-manual-api-security-report.csv deduplicated_api_security_issues.json'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/deduplicated_api_security_issues.json'
+              artifactName: 'deduplicatedApiSecurityIssues'    
+
+          
+
         
