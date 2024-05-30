@@ -39,7 +39,7 @@ stages:
     jobs:
       - job: owasp_zap
         condition: succeeded()
-        displayName: 'OWASP Zap'
+        displayName: 'owasp zap'
         steps:
           - script: |
               AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$API_AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
