@@ -14,6 +14,26 @@ variables:
   AKTO_TESTING_RUNHEXA_ID: '66580ac8d32ba320db8d82bd'
   AUTH_TOKEN: ' '
 
+## This pipeline is to demonstrate the api security automation of various tools - akto, zap and wallarm
+##  and to aggregate the vulns and deduplicate the detected vulnerabilities
+
+## 1. To demonstrate this concept, chosen the below application for target api server which has openapi3 specs as well
+##    https://github.com/msfullstackdev/VAmPI (forked with my gihub acc)
+## 2. Pipeline configurations are added in the same repository
+##    Path: /azure-pipelines.yml
+## 3. Path to OpenAPI Specs file: /openapi_specs/openapi3.yml
+## 4. Target API Server is hosted in Digital Ocean Cloud with free tier account
+##      url: http://139.59.40.74:5000
+## 5. Added the Job for performing API Security Testing using OWASP Zap - Completed
+## 6. API Security Testing using Akto - Partially Completed
+##      a. Created free tier saas akto account
+##      b. Imported the OpenAPI Specs file in the portal
+##      c. Generate token feature is not enabled in free tier account, hence ci/cd integration is not possible with free tier account
+##      d. Manually with the portal, performed the scan and uploaded the reports in github repository 
+##          Path: https://github.com/msfullstackdev/VAmPI/blob/master/akto-manual-api-security-report.csv
+## 7. Wallarm API Security Testing - Not able to perform the scan either manual or automated with free tier account
+##      a. Open API security testing feature is not enabled and it requires nodes to configured
+
 stages:
   - stage: API_Security_Scanning
     jobs:
@@ -59,18 +79,54 @@ stages:
         condition: succeeded()
         steps:
           - script: |
-              curl $(AKTO_DASHBOARD_URL)/api/startTest -H 'X-API-KEY: $(AKTO_API_KEY)' -H 'content-type: application/json' -d '{"testingRunHexId": "$(AKTO_TESTING_RUNHEXA_ID)", "startTimestamp" : 0, "metadata": {"platform": "Azure DevOps"}}'
-            displayName: 'Trigger the Akto API Scan'
+              echo 'With free tier account not able to automate the API scan'
+            displayName: 'Not able to automate the API Security Testing with limitations of free tier account'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/akto-manual-api-security-report.csv'
+              artifactName: 'aktoResults'
+
+          ## Ways of initiating the scan from the pipeline
+          ## Option 1: Trigger the Akto API Scan
+
+          # - script: |
+          #     curl $(AKTO_DASHBOARD_URL)/api/startTest -H 'X-API-KEY: $(AKTO_API_KEY)' \ 
+          #     -H 'content-type: application/json' \
+          #     -d '{"testingRunHexId": "$(AKTO_TESTING_RUNHEXA_ID)", "startTimestamp" : 0, "metadata": {"platform": "Azure DevOps"}}'
+          #   displayName: 'Trigger the Akto API Scan'
+
+          ##Option 2: Execute the scan using CLI
+          
+          # - script: |
+          #     docker run --rm  -it  -v {pwd}:/out -e TEST_IDS='ALL' \
+          #     -e AKTO_DASHBOARD_URL=$(AKTO_DASHBOARD_URL) \
+          #     -e AKTO_API_KEY=$(AKTO_API_KEY) -e API_COLLECTION_ID=$(API_COLLECTION_ID) \
+          #     -e OVERRIDE_APP_URL=$(API_URL) aktosecurity/akto-api-testing-cli
+          #   displayName: 'Trigger the Akto API Scan'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/akto-manual-api-security-report.csv'
+              artifactName: 'aktoResults'
       
       - job: 'wallarm'
         displayName: 'wallarm'
         condition: succeeded()
         steps:
+        ## Not implemented as it requires the advanced api security subscription plan
           - script: |
-              echo 'Yet to be implemented'
+              echo 'Not implemented as it requires the advanced api security subscription plan'
             displayName: 'Trigger the wallarm API Scan'
+        ## Script below to automate the wallarm api security testing
 
-      - job: 'deduplication'
+          # - script: |
+          #     docker run -e WALLARM_API_HOST=us1.api.wallarm.com \
+          #     -e WALLARM_API_TOKEN=${WALLARM_API_TOKEN} -e WALLARM_TESTING_POLICY_ID=7 \
+          #     -e TARGET_URL=${WALLARM_SCANNER_TARGET_URL} -v ${WALLARM_REPORT_PATH}:/app/reports \
+          #     --pull=always wallarm/oas-fast-scanner:latest
+          #   displayName: 'Trigger the wallarm API Scan'
+          
+      - job: 'aggregation_and_deduplication'
         displayName: 'aggregation and deduplication'
         dependsOn:
           - wallarm
