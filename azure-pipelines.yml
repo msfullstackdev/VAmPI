@@ -81,10 +81,6 @@ stages:
           - script: |
               echo 'With free tier account not able to automate the API scan'
             displayName: 'Not able to automate the API Security Testing with limitations of free tier account'
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(System.DefaultWorkingDirectory)/akto-manual-api-security-report.csv'
-              artifactName: 'aktoResults'
 
           ## Ways of initiating the scan from the pipeline
           ## Option 1: Trigger the Akto API Scan
