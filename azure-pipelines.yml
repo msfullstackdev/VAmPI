@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  API_URL: 'http://64.227.149.167:5000'
+  API_URL: 'http://139.59.40.74:5000'
   AUTH_ENDPOINT: '/users/v1/login'  
   AKTO_API_KEY: 'your_akto_api_key' 
   AUTH_TOKEN: 'your_auth_token_here'
@@ -13,61 +13,61 @@ variables:
 stages:
   - stage: API_Security_Scanning
     jobs:
-      # - job: OWASP_ZAP
-      #   condition: succeeded()
-      #   displayName: 'OWASP Zap'
-      #   steps:
-      #     - script: |
-      #         AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
-      #         AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.auth_token')
-      #         echo "Retrieved Auth Token: $AUTH_TOKEN"
-      #         echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
-      #       displayName: 'Retrieve Auth Token from OpenAPI'
-      #     - script: |
-      #         sudo chmod -R 777 $(System.DefaultWorkingDirectory)
-      #         docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
-      #           -O $(API_URL) \
-      #           -I -t /zap/wrk/openapi_specs/openapi3.yml \
-      #           -f openapi \
-      #           -r zap_report.html \
-      #           -J zap_results.json \
-      #           -z "-config replacer.full_list(0).description=auth_header \
-      #           -config replacer.full_list(0).enabled=true \
-      #           -config replacer.full_list(0).matchtype=REQ_HEADER \
-      #           -config replacer.full_list(0).matchstr=Authorization \
-      #           -config replacer.full_list(0).regex=false \
-      #           -config replacer.full_list(0).replacement=Bearer $(AUTH_TOKEN)" 
-      #       displayName: 'Run ZAP API Scan with OpenAPI and Auth'
-          
-      #     - task: PublishBuildArtifacts@1
-      #       inputs:
-      #         pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_results.json'
-      #         artifactName: 'ZapResults'
-          
-      #     - task: PublishBuildArtifacts@1
-      #       inputs:
-      #         pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_report.html'
-      #         artifactName: 'ZapHtmlReport'
-
-      - job: Akto
-        displayName: 'Akto'
+      - job: OWASP_ZAP
         condition: succeeded()
+        displayName: 'OWASP Zap'
         steps:
           - script: |
-              AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$(AUTH_ENDPOINT)" -H "Content-Type: application/json" -d '{"username":"admin", "password":"password"}')
-              AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
+              AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$AUTH_ENDPOINT" -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass1"}')
+              AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.auth_token')
               echo "Retrieved Auth Token: $AUTH_TOKEN"
               echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
             displayName: 'Retrieve Auth Token from OpenAPI'
-
           - script: |
-              docker run --rm --network host -v $(System.DefaultWorkingDirectory):/out \
-              -e AKTO_DASHBOARD_URL='http://64.227.149.167:9090' \
-              -e AKTO_API_KEY='IvZKIN7aTpg8TR7T7ULFL9C5KTgoeK0JPpXKMazs' \
-              -e OVERRIDE_APP_URL='http://64.227.149.167:5000/' \
-              -e OUTPUT_LEVEL=DETAILED \
-              aktosecurity/akto-api-testing-cli
-            displayName: 'Run Akto Scan with Auth'
+              sudo chmod -R 777 $(System.DefaultWorkingDirectory)
+              docker run  --rm  --network host -v $(System.DefaultWorkingDirectory):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+                -O $(API_URL) \
+                -I -t /zap/wrk/openapi_specs/openapi3.yml \
+                -f openapi \
+                -r zap_report.html \
+                -J zap_results.json \
+                -z "-config replacer.full_list(0).description=auth_header \
+                -config replacer.full_list(0).enabled=true \
+                -config replacer.full_list(0).matchtype=REQ_HEADER \
+                -config replacer.full_list(0).matchstr=Authorization \
+                -config replacer.full_list(0).regex=false \
+                -config replacer.full_list(0).replacement=Bearer $(AUTH_TOKEN)" 
+            displayName: 'Run ZAP API Scan with OpenAPI and Auth'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_results.json'
+              artifactName: 'ZapResults'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_report.html'
+              artifactName: 'ZapHtmlReport'
+
+      # - job: Akto
+      #   displayName: 'Akto'
+      #   condition: succeeded()
+      #   steps:
+      #     - script: |
+      #         AUTH_RESPONSE=$(curl -s -X POST "$(API_URL)$(AUTH_ENDPOINT)" -H "Content-Type: application/json" -d '{"username":"admin", "password":"password"}')
+      #         AUTH_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
+      #         echo "Retrieved Auth Token: $AUTH_TOKEN"
+      #         echo "##vso[task.setvariable variable=AUTH_TOKEN]$AUTH_TOKEN"
+      #       displayName: 'Retrieve Auth Token from OpenAPI'
+
+      #     - script: |
+      #         docker run --rm --network host -v $(System.DefaultWorkingDirectory):/out \
+      #         -e AKTO_DASHBOARD_URL='http://64.227.149.167:9090' \
+      #         -e AKTO_API_KEY='IvZKIN7aTpg8TR7T7ULFL9C5KTgoeK0JPpXKMazs' \
+      #         -e OVERRIDE_APP_URL='http://64.227.149.167:5000/' \
+      #         -e OUTPUT_LEVEL=DETAILED \
+      #         aktosecurity/akto-api-testing-cli
+      #       displayName: 'Run Akto Scan with Auth'
 
   
   # docker run -v ./:/out  \ # needed to generate test report on host machine
