@@ -37,7 +37,7 @@ variables:
 stages:
   - stage: API_Security_Scanning
     jobs:
-      - job: OWASP_ZAP
+      - job: owasp_zap
         condition: succeeded()
         displayName: 'OWASP Zap'
         steps:
@@ -74,8 +74,8 @@ stages:
               pathtoPublish: '$(System.DefaultWorkingDirectory)/zap_report.html'
               artifactName: 'ZapHtmlReport'
 
-      - job: Akto
-        displayName: 'Akto'
+      - job: akto
+        displayName: 'akto'
         condition: succeeded()
         steps:
           - script: |
@@ -126,8 +126,8 @@ stages:
         displayName: 'aggregation and deduplication'
         dependsOn:
           - wallarm
-          - Akto
-          - OWASP_ZAP
+          - akto
+          - owasp_zap
         steps:
           - script: |
              echo 'hello'
