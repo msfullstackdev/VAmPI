@@ -67,7 +67,7 @@ stages:
         condition: succeeded()
         steps:
           - script: |
-              docker run --rm --network="host" -v %cd%/reports:/app/reports -v $(System.DefaultWorkingDirectory)/openapi3.yml:/app/openapi3.yml wallarm/gotestwaf -e url=$(API_URL) -e openapiFile=openapi3.yml --noEmailReport 
+              docker run --rm --network="host" -v $(System.DefaultWorkingDirectory)/reports:/app/reports -v $(System.DefaultWorkingDirectory)/openapi3.yml:/app/openapi3.yml wallarm/gotestwaf --url $(API_URL)  --openapiFile openapi3.yml --noEmailReport 
             displayName: 'Trigger the wallarm API Scan'
 
           # - script: |
