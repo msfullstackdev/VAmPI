@@ -127,7 +127,7 @@ stages:
           #   displayName: 'Trigger the wallarm API Scan'
           
       - job: 'aggregation_and_deduplication'
-        displayName: 'aggregation and deduplication'
+        displayName: 'api scanner results aggregation and deduplication'
         dependsOn:
           - wallarm
           - akto
