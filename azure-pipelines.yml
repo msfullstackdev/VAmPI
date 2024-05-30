@@ -152,7 +152,7 @@ stages:
           - task: CmdLine@2
             displayName: 'Deduplicate the Api Security Issues'
             inputs:
-              script: 'python https://github.com/msfullstackdev/VAmPI/blob/master/vuln_aggregation_and_deduplication.py $(System.ArtifactsDirectory)/ZapResults/zap_results.json $(System.ArtifactsDirectory)/aktoResults/akto-manual-api-security-report.csv deduplicated_api_security_issues.json'
+              script: 'python vuln_aggregation_and_deduplication.py $(System.ArtifactsDirectory)/ZapResults/zap_results.json $(System.ArtifactsDirectory)/aktoResults/akto-manual-api-security-report.csv deduplicated_api_security_issues.json'
 
           - task: PublishBuildArtifacts@1
             inputs:
