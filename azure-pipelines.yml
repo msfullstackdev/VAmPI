@@ -55,7 +55,11 @@ stages:
         steps:
           - script: |
               curl http://139.59.40.74:9090/api/startTest -H 'X-API-KEY: QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d' -H 'content-type: application/json' -d '{"testingRunHexId": "66580ac8d32ba320db8d82bd", "startTimestamp" : 0, "metadata": {"platform": "Azure DevOps"}}'
-            displayName: 'Retrieve Auth Token from OpenAPI'
+            displayName: 'Trigger the Akto API Scan'
+          - script: |
+              curl "http://139.59.40.74:9090//api/fetchTestRunResultDetails" -H 'X-API-KEY: QHX65uzAoLZ9M33USJe1zbMD7IxzkGeeft49cO4d' -H 'content-type: application/json' -d '{"testingRunResultHexId": 66580ac8d32ba320db8d82bd}' --compressed
+            displayName: 'Trigger the Akto API Scan'
+          
 
       #     - script: |
       #         docker run --rm --network host -v $(System.DefaultWorkingDirectory):/out \
